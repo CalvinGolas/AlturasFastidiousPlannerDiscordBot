@@ -8,6 +8,7 @@ use serenity::framework::standard::{StandardFramework, CommandResult};
 
 #[group]
 #[commands(ping)]
+#[commands(enroll_player)]
 struct General;
 
 struct Handler;
@@ -39,6 +40,18 @@ async fn main() {
 #[command]
 async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
     msg.reply(ctx, "Pong!").await?;
+    println!("pinging...");
+    Ok(())
+}
+
+#[command]
+async fn enroll_player(ctx: &Context, msg: &Message) -> CommandResult {
+    println!("enrolling player...");
+    let (_, user_id) = msg.content.split_once(' ').unwrap();
+    let mut message_reply = String::from("📜 Enrolling player: ");
+    message_reply.push_str(user_id);
+    msg.reply(ctx, message_reply).await?;
+
 
     Ok(())
 }
