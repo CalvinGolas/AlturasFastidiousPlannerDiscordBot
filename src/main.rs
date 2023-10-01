@@ -7,8 +7,7 @@ use serenity::framework::standard::macros::{command, group};
 use serenity::framework::standard::{StandardFramework, CommandResult};
 
 #[group]
-#[commands(ping)]
-#[commands(enroll_player)]
+#[commands(ping, enroll_pc, enroll_gm, prompt_session, cancel_session, debug_list_players)]
 struct General;
 
 struct Handler;
@@ -45,10 +44,15 @@ async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
 }
 
 #[command]
-async fn enroll_player(ctx: &Context, msg: &Message) -> CommandResult {
+async fn enroll_pc(ctx: &Context, msg: &Message) -> CommandResult {
     println!("enrolling player...");
     let (_, user_id) = msg.content.split_once(' ').unwrap();
-    let mut message_reply = String::from("📜 Enrolling player: ");
+
+    // TODO: Check if input is already present in db as pc or gm
+
+    // TODO: Add player as Dynamo item
+
+    let mut message_reply = String::from("📜 Enrolled player: ");
     message_reply.push_str(user_id);
     msg.reply(ctx, message_reply).await?;
 
