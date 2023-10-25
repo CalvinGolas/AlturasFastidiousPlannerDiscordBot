@@ -1,21 +1,34 @@
+use std::collections::HashMap;
 use std::env;
 
 use serenity::async_trait;
 use serenity::prelude::*;
-use serenity::model::channel::Message;
+use serenity::model::channel::{Message, Reaction};
 use serenity::framework::standard::macros::{command, group};
 use serenity::framework::standard::{StandardFramework, CommandResult};
-use csv;
+use csv::Reader;
+use serde::Deserialize;
 use time::PrimitiveDateTime;
 use time::macros::format_description;
 use serenity::model::prelude::Member as MemberData;
 use uuid;
+use std::fs::File;
+use std::hash::Hash;
 
 #[group]
 #[commands(ping, enroll_pc, enroll_gm, prompt_session, cancel_session, debug_list_players)]
 struct General;
 
 struct Handler;
+
+#[derive(Debug, Deserialize)]
+struct SessionRecord {
+    campaign:String,
+    date_time:String,
+    status:String,
+    pole_id:String,
+    session_id:String
+}
 
 #[async_trait]
 impl EventHandler for Handler {}
@@ -115,17 +128,26 @@ fn parse_date(unparsed_date: &str) -> PrimitiveDateTime{
     let time = PrimitiveDateTime::parse(
         &ready_to_parse_date_string,
         &date_format);
-    println!("{}", time.unwrap().month());
-    time.unwrap()
 
+    time.unwrap()
 }
 
 #[command]
 async fn cancel_session(ctx: &Context, msg: &Message) -> CommandResult {
     println!("generating session prompt...");
     // splits to input that should be MM-dd HH:mm TZ
-    let (_, unparsed_time) = msg.content.split_once(' ').unwrap();
+    msg.author.name.
 
+    let (_, session_uuid) = msg.content.split_once(' ').unwrap();
+    let mut read_file = Reader::from_path("db_stand_in/sessions.csv");
+
+    for result in read_file.deserialize() {
+        let session_record: SessionRecord = result;
+        if (session_record.session_id == session_uuid && msg.author.name ){
+
+
+        }
+    }
 
     let mut message_reply = String::from("
     'Sup everyone, no session on the {day} of {month} at {HH:MM} {timezone}.
@@ -158,15 +180,26 @@ async fn get_guild_name_list(ctx: &Context, msg: &Message) -> CommandResult {
     if let Some(guild_id) = msg.guild_id {
         let members: Vec<MemberData> = guild_id.members(&ctx.http, None, None).await?;
 
-        let user_data: Vec<(String, u64)> = members.iter()
-            .map(|m| (m.user.name.clone(), *m.user.id.as_u64()))
+        let user_data: Vec<(&String, &String, &u64)> = members.iter()
+            .map(|m| ( m.nick.as_ref().unwrap_or(&m.user.name), &m.user.name, m.user.id.as_u64()))
             .collect();
 
-        let user_data_message: String = user_data.iter()
-            .map(|(name, id)| format!("Username: {name}, ID: {id}", name = name, id = id))
-            .collect::<Vec<String>>()
-            .join("\n");
-        msg.reply(ctx, user_data_message).await?;
+        let mut nickname_id: HashMap<&String, &u64> = HashMap::new();
+        let mut name_id: HashMap<&String, &u64> = HashMap::new();
+        for (nickname, name, id) in user_data.iter() {
+            nickname_id.insert(nickname, id);
+            name_id.insert(name,id);
+        }
+        // TODO: NOT FINISHED GET BACK HERE PLEASE WE ARE ENDING BEFORE YOU FINISH THE THOUGHT
+        (nickname_id, name_id)
+
     }
     Ok(())
+}
+
+
+
+pub async fn on_reaction_add(ctx: &Context, add_reaction: &Reaction) {
+    print!("that's enough monster hunter for now");
+
 }
