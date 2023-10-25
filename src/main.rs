@@ -5,11 +5,11 @@ use serenity::prelude::*;
 use serenity::model::channel::Message;
 use serenity::framework::standard::macros::{command, group};
 use serenity::framework::standard::{StandardFramework, CommandResult};
-use serenity::http::routing::RouteInfo::GetEmoji;
 use csv;
 use time::PrimitiveDateTime;
 use time::macros::format_description;
 use serenity::model::prelude::Member as MemberData;
+use uuid;
 
 #[group]
 #[commands(ping, enroll_pc, enroll_gm, prompt_session, cancel_session, debug_list_players)]
@@ -90,16 +90,16 @@ async fn prompt_session(ctx: &Context, msg: &Message) -> CommandResult {
     let time = parse_date(unparsed_time);
 
     let mut message_reply = format!("
-    Howdy everyone! This is a reminder that the next session is going to be on the {} of {}
-    at {}:{}. Please react with a ✅, ❌, or 🤔 as a maybe.
+    Well I'll be. The session's going to be on this date: {} {}
+    at {}:{}. React with a ✅, ❌, or 🤔 as a maybe. Or ya know, don't. I don't care... 😒
     ", time.day(), time.month(), time.hour(), time.minute());
-    message_reply.push_str(unparsed_time);
-    msg.reply(ctx, message_reply).await?;
+
+    let session_prompt =  msg.reply(ctx, message_reply).await?;
 
     // Attach emojis to pushed message
-    msg.react(&ctx.http ,'✅').await?;
-    msg.react(&ctx.http ,'❌').await?;
-    msg.react(&ctx.http ,'🤔').await?;
+    session_prompt.react(&ctx.http ,'✅').await?;
+    session_prompt.react(&ctx.http ,'❌').await?;
+    session_prompt.react(&ctx.http ,'🤔').await?;
 
     // TODO: message await reactions
 
@@ -109,11 +109,11 @@ async fn prompt_session(ctx: &Context, msg: &Message) -> CommandResult {
 fn parse_date(unparsed_date: &str) -> PrimitiveDateTime{
     println!("Parsing {}", unparsed_date);
     // MM-dd HH:mm
-    let date_format = format_description!("[month]-[day] [hour]:[minute] [second]");
-
-    // TODO: Add error handling
+    let date_format= format_description!("[year] [month]-[day] [hour]:[minute] [second]");
+    // convert to primitive date time ready format
+    let ready_to_parse_date_string = format!("1985 {} 00", unparsed_date);
     let time = PrimitiveDateTime::parse(
-        unparsed_date,
+        &ready_to_parse_date_string,
         &date_format);
     println!("{}", time.unwrap().month());
     time.unwrap()
