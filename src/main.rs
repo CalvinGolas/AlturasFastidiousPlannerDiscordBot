@@ -5,6 +5,8 @@ use serenity::prelude::*;
 use serenity::model::channel::Message;
 use serenity::framework::standard::macros::{command, group};
 use serenity::framework::standard::{StandardFramework, CommandResult};
+use serenity::http::routing::RouteInfo::GetEmoji;
+use csv;
 use time::PrimitiveDateTime;
 use time::macros::format_description;
 use serenity::model::prelude::Member as MemberData;
@@ -94,7 +96,12 @@ async fn prompt_session(ctx: &Context, msg: &Message) -> CommandResult {
     message_reply.push_str(unparsed_time);
     msg.reply(ctx, message_reply).await?;
 
-    // TODO: Attach emojis to pushed message
+    // Attach emojis to pushed message
+    msg.react(&ctx.http ,'✅').await?;
+    msg.react(&ctx.http ,'❌').await?;
+    msg.react(&ctx.http ,'🤔').await?;
+
+    // TODO: message await reactions
 
     Ok(())
 }
